@@ -1,0 +1,16 @@
+Title: Smart Wi-FI based froming.
+The motivation behind this smart device to monitoring the soil moisture, humidity in the forming. And what ever the data is coming from the 
+device, which would be stores in the cloud service.
+
+Microprocessor/Microcontroller:
+In this device, i have used ESP8266 Wi-Fi module which is also contains GPIO pins. And these GPIO pins we can use as input and output.
+it provides inbuild Wi-Fi module and easy to available in the market with optimum cost.
+
+What do you use for the cloud part ? 
+Cloud used to aggregate data from tools like soil sensors, to help farmers make better decisions about managing their crops, like how much 
+water is required for the crop, how much moisture containe by soil etc.
+We used ESP8266 as a server to send the data over the internet. And data finally will be show on the android cell phone screen.
+
+  
+ 
+ 
