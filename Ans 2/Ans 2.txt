@@ -1,0 +1,202 @@
+/*
+Title: Iot based smart agro device code.
+Here i am using arduino ide for coading, and ESP8266 wi-fi module use as a processor.
+ESP8266 capable to send the data over the internet. and all thing will be controlled automaticall according to the sensor data.  
+
+      
+*/
+l#include<LiquidCrystal_I2C.h>  // Here i am using I2C communication in between ESP8266 and 16x2 LCD.
+#include <ESP8266WiFi.h>       
+#include<dht.h>
+const int Automatic_light_pin =13;
+const int ldr_sensor=A2;
+const int dht_pin =A0;  // Attach data pin of dht sensor(humidity sensor) on analog pin A0
+const int moisture_sensor_pin =A1;
+LiquidCrystal_I2C lcd(0x3F,16,2); // Address for communication 
+String  i;
+dht DHT;
+WiFiServer server(80);  // Use channel 80
+// here i am using dc motor as pump, so connected two terminal of motor to arduino pins.
+const int pump_01=6;  // 
+const int pump_02=7;
+void Smart_agro()
+{
+  lcd.setCursor(2,0);
+  lcd.print("WELCOME TO");
+  lcd.setCursor(0,0);
+  lcd.print("SMART AGRO SYSTEM");
+  delay(2000);
+ } 
+void MY_IP_Address(){
+  
+  lcd.setCursor(0,0);
+  lcd.print("  I AM CONNECTED");
+  delay(3000);
+  lcd.setCursor(0,0);
+  lcd.print("my ip is:");
+  delay(3000);
+  lcd.setCursor(0,0);
+  lcd.print((WiFi.localIP()));
+  delay(3000);
+      
+}
+void setup()
+{
+  
+  i = "";
+  lcd.begin(16,2);
+  lcd.backlight();
+  lcd.setCursor(0,0),
+  Serial.begin(115200); // Baud rate of ESP8266
+  pinMode(pump_01,OUTPUT);
+  pinMode(pump_02,OUTPUT);
+  pinMode(Automatic_light_pin,OUTPUT);
+  pinMode(ldr_sensor,INPUT);
+// Intitally pump will be OFF condition. 
+  digitalWrite(pump_01,LOW);
+  digitalWrite(pump_02,LOW);
+  Smart_agro();
+  
+
+// if wifi connect to any server priviously then it will be disconnect...  
+  WiFi.disconnect();
+  delay(2000);
+  WiFi.begin("1811mt05","1811mt05@12345");  // User name and password for Wi-Fi connection to android cell phone.
+  while ((!(WiFi.status() == WL_CONNECTED)))
+  {
+      delay(300);
+      lcd.setCursor(0,0);
+      lcd.print("connecting");     
+      lcd.setCursor(0,0);
+      lcd.print(".........");// Device seaching for server
+     }
+   MY_IP_(); 
+   server.begin();
+}
+
+
+void loop()
+{
+    WiFiClient client = server.available();
+    if (!client) { 
+      return; 
+      }
+    while(!client.available()){ 
+      delay(1); 
+      }
+    i = (client.readStringUntil('\r'));
+    i.remove(0, 5);
+    i.remove(i.length()-9,9); 
+    dht_data();   
+    Moiture_data();
+    ldr_data();
+    
+    
+}   
+  
+
+
+void ldr_data(){
+  int ldr_value=analogRead(ldr_sensor);
+  lcd.setCursor(0,0);
+  lcd.print(ldr_value);
+       client.println("HTTP/1.1 200 OK");
+       client.println("Content-Type: text/html");
+       client.println("");
+       client.println("<!DOCTYPE HTML>");
+       client.println("<html>");
+       client.println(ldr_value);
+       client.println("</html>");
+       client.stop();
+       delay(1);   
+
+  if(ldr_data<=200){
+    digitalWrite(Automatic_light_pin,HIGH);
+   else{
+      digitalWrite(Automatic_light_pin,LOW); 
+       client.println("HTTP/1.1 200 OK");
+       client.println("Content-Type: text/html");
+       client.println("");
+       client.println("<!DOCTYPE HTML>");
+       client.println("<html>");
+       client.println("light off");
+       client.println("</html>");
+       client.stop();
+       delay(1);   
+
+   }
+}
+  
+
+
+void Moiture_data(){
+  int out_data=analogRead(moisture_sensor_pin);
+  out_data=map(out_data,550,10,0,100);
+  lcd.setCursor(0,0);
+  lcd.print("out_data%");
+       client.println("HTTP/1.1 200 OK");
+       client.println("Content-Type: text/html");
+       client.println("");
+       client.println("<!DOCTYPE HTML>");
+       client.println("<html>");
+       client.println(out_data);
+       client.println("</html>");
+       client.stop();
+       delay(1);   
+while true{ 
+   if(out_data<=20){
+       // PUMP WILL BE ON..
+       digitalWrite(pump_01,HIGH);
+       digitalWrite(pump_02,lOW);
+       lcd.setCursor(0,0);
+       lcd.print("out_data");       
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/html");
+          client.println("");
+          client.println("<!DOCTYPE HTML>");
+          client.println("<html>");
+          client.println("PUMP ON");
+          client.println("</html>");
+          client.stop();
+          delay(1);   
+
+       if(out_data>=45){
+             // pum will off..
+             digitalWrite(pump_01,LOW);
+             digitalWrite(pump_02,LOW);
+             client.println("HTTP/1.1 200 OK");
+             client.println("Content-Type: text/html");
+             client.println("");
+             client.println("<!DOCTYPE HTML>");
+             client.println("<html>");
+             client.println("PUMP OFF");
+             client.println("</html>");
+             client.stop();
+             delay(1);   
+             break;           
+       }
+     }         
+} 
+
+
+  
+}
+
+
+void dht_data(){
+     DHT.read11();  
+     lcd.setCursor(0,0);
+     lcd.print(DHT.humidity);
+     lcd.setCursor(1,0);
+     lcd.print(DHT,temprature);
+     delay(2000);    
+       client.println("HTTP/1.1 200 OK");
+       client.println("Content-Type: text/html");
+       client.println("");
+       client.println("<!DOCTYPE HTML>");
+       client.println("<html>");
+       client.println("DHT.humidity");
+       client.println("</html>");
+       client.stop();
+       delay(1);   
+}
