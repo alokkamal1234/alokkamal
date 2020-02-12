@@ -1,5 +1,5 @@
 /*
-Here i'm using Arduino IDE for coading.And in the matrix 16 rows and 64 columns are there,
+Here i'm using Arduino IDE for coading.And the matrix contains 16 rows and 64 columns are there,
 Also using multipelxing shifting resister, and total 8 shift resisters are used to controll the 1024 leds.
 
 */
